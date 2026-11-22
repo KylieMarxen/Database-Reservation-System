@@ -1,0 +1,46 @@
+-- ----------------------
+-- The Null Exceptions
+-- ----------------------
+-- Task 3.3 - Test and Document Reservation Updates (KAN-19)
+-- -----------------------
+
+-- user story 3 (added new after tuesday 11/17/26)
+CREATE TRIGGER trg_check_capacity_update
+BEFORE UPDATE ON Reservation
+FOR EACH ROW
+SET NEW.party_size = IF(
+    NEW.party_size > (SELECT capacity FROM RestaurantTable WHERE table_id = NEW.table_id),
+    NULL,
+    NEW.party_size);
+
+
+-- NEW TESTS for user story 3
+
+-- user story 3: before
+select reservation_id, DATE_FORMAT(res_date, '%Y-%m-%d') as res_date,
+       res_time, party_size, table_id, status
+from Reservation where reservation_id = 3;
+
+
+-- user story 3: success - change time to 7 pm and the party size to 3
+update Reservation
+set res_time = '19:00:00', party_size = 3
+where reservation_id = 3;
+
+
+-- user story 3: after - it shows the change
+select reservation_id, DATE_FORMAT(res_date, '%Y-%m-%d') as res_date,
+       res_time, party_size, table_id, status
+from Reservation where reservation_id = 3;
+
+
+-- user story 3: fail - party of 7 at table 4, which seats 4
+update Reservation set party_size = 7 where reservation_id = 3;
+
+
+-- user story 3: fail - party size of 0
+update Reservation set party_size = 0 where reservation_id = 3;
+
+
+-- user story 3: fail - test regarding the time outside restaurant hours
+update Reservation set res_time = '23:30:00' where reservation_id = 3;
