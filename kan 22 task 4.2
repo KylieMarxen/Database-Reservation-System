@@ -1,0 +1,5 @@
+-- kan 22
+-- task 4.2
+alter table Reservation
+    add column active_time time generated always AS (if(status = 'Booked', res_time, null)) stored,
+    add constraint uq_table_seating UNIQUE (table_id, res_date, active_time);
